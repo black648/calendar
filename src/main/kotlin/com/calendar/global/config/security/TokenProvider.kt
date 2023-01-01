@@ -1,32 +1,37 @@
 package com.calendar.global.config.security
 
+import com.calendar.domain.member.domain.Member
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.Jws
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.SignatureAlgorithm
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.data.redis.core.ValueOperations
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Component
 import java.util.*
 
-@RequiredArgsConstructor
 @Component
-@Log4j2
-class TokenProvider {
-    private var secretKey = "hangry"
+class TokenProvider(
+        private var secretKey: String = "hangry",
+        private val tokenValidTime: Long = 30 * 60 * 1000L,
+        private val redisTemplate: StringRedisTemplate? = null,
+        private val userDetailsService: UserDetailsService? = null
 
-    //토큰 유효시간 30분
-    private val tokenValidTime = 30 * 60 * 1000L
-    private val redisTemplate: StringRedisTemplate? = null
-    private val userDetailsService: UserDetailsService? = null
+) {
     @PostConstruct
     protected fun init() {
         secretKey = Base64.getEncoder().encodeToString(secretKey.toByteArray())
     }
 
     //JWT 토큰 생성
-    fun createToken(member: MemberEntity): String {
-        val claims: Claims = Jwts.claims().setSubject(member.getUsername()) //JWT payload에 저장되는 단위
-        claims.put("mberSe", member.getMberSe()) // 정보는 key / value 쌍으로 저장된다.
+    fun createToken(member: Member): String {
+        val claims: Claims = Jwts.claims().setSubject(member.name()) //JWT payload에 저장되는 단위
+        claims.put("role", member.role()) // 정보는 key / value 쌍으로 저장된다.
         val now = Date()
         val token: String = Jwts.builder()
                 .setClaims(claims) // 정보 저장

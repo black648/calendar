@@ -10,15 +10,14 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.filter.GenericFilterBean
 import java.io.IOException
 
-@RequiredArgsConstructor
-class AuthenticationFilter : GenericFilterBean() {
-
-    private val tokenProvider: TokenProvider? = null
+class AuthenticationFilter(
+        private val tokenProvider: TokenProvider
+) : GenericFilterBean() {
 
     @Throws(IOException::class, ServletException::class)
     override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain) {
         // 헤더에서 JWT 를 받아옵니다.
-        val token: String = tokenProvider.resolveToken(request as HttpServletRequest?)
+        val token: String? = tokenProvider.resolveToken(request as HttpServletRequest)
         // 유효한 토큰인지 확인합니다.
         if (token != null && tokenProvider.validateToken(token)) {
             // 토큰이 유효하면 토큰으로부터 유저 정보를 받아옵니다.
