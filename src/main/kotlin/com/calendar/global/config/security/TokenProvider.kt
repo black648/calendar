@@ -1,6 +1,7 @@
 package com.calendar.global.config.security
 
 import com.calendar.domain.member.domain.Member
+import com.calendar.global.constants.CommonConstants
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jws
 import io.jsonwebtoken.Jwts
@@ -30,8 +31,8 @@ class TokenProvider(
 
     //JWT 토큰 생성
     fun createToken(member: Member): String {
-        val claims: Claims = Jwts.claims().setSubject(member.name()) //JWT payload에 저장되는 단위
-        claims.put("role", member.role()) // 정보는 key / value 쌍으로 저장된다.
+        val claims: Claims = Jwts.claims().setSubject(member.name) //JWT payload에 저장되는 단위
+        claims.put("role", member.role) // 정보는 key / value 쌍으로 저장된다.
         val now = Date()
         val token: String = Jwts.builder()
                 .setClaims(claims) // 정보 저장
@@ -65,8 +66,8 @@ class TokenProvider(
         return try {
             val claims: Jws<Claims> = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwtToken)
             val valueOperations: ValueOperations<String, String> = redisTemplate.opsForValue()
-            if (ObjectUtil.isEqualStr(CommonConstants.CONST_LOGOUT, valueOperations.get(jwtToken))) {
-                log.info("로그아웃된 토큰 입니다.")
+            if (CommonConstants.CONST_LOGOUT.equals(valueOperations.get(jwtToken))) {
+//                log.info("로그아웃된 토큰 입니다.")
                 return false
             }
             !claims.getBody().getExpiration().before(Date())
