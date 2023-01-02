@@ -41,8 +41,7 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
-    implementation("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
-    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("io.github.microutils:kotlin-logging-jvm:3.0.4")
 
     // QueryDSL 스프링 부트 3.0 이상
     implementation("com.querydsl:querydsl-jpa:$querydslVersion:jakarta")

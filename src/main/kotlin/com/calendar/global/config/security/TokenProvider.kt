@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import jakarta.annotation.PostConstruct
 import jakarta.servlet.http.HttpServletRequest
+import mu.NamedKLogging
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.ValueOperations
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -18,12 +19,15 @@ import java.util.*
 
 @Component
 class TokenProvider(
-        private var secretKey: String = "hangry",
-        private val tokenValidTime: Long = 30 * 60 * 1000L,
-        private val redisTemplate: StringRedisTemplate? = null,
-        private val userDetailsService: UserDetailsService? = null
-
+        private val redisTemplate: StringRedisTemplate,
+        private val userDetailsService: UserDetailsService
 ) {
+
+    companion object: NamedKLogging("TEXT_CONSOLE")
+
+    private var secretKey: String = "hangry"
+    private val tokenValidTime: Long = 30 * 60 * 1000L
+
     @PostConstruct
     protected fun init() {
         secretKey = Base64.getEncoder().encodeToString(secretKey.toByteArray())
@@ -62,12 +66,13 @@ class TokenProvider(
     }
 
     // 토큰의 유효성 + 만료일자 확인
-    fun validateToken(jwtToken: String?): Boolean {
+    fun validateToken(jwtToken: String): Boolean {
         return try {
             val claims: Jws<Claims> = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(jwtToken)
             val valueOperations: ValueOperations<String, String> = redisTemplate.opsForValue()
             if (CommonConstants.CONST_LOGOUT.equals(valueOperations.get(jwtToken))) {
 //                log.info("로그아웃된 토큰 입니다.")
+                logger.info("로그아웃된 토큰 입니다.")
                 return false
             }
             !claims.getBody().getExpiration().before(Date())
